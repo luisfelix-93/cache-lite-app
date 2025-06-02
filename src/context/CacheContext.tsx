@@ -8,6 +8,7 @@ interface CacheContextType {
     disconnect: () => void;
     ip?: string;
     port?: number
+    keys: string[]
 }
 
 const CacheContext = createContext<CacheContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ export const CacheProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [ip, setIp] = useState<string>();
     const [port, setPort] = useState<number>();
+    const [keys, setKeys] = useState<string[]>([]); // Adicionando estado para chaves
 
     const socketRef = useRef<WebSocket | null>(null);
 
@@ -35,6 +37,12 @@ export const CacheProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         ws.onmessage = (event) => {
             setLogs((prevLogs) => [...prevLogs, `Message received: ${event.data}`]);
+            // Verifica se a mensagem é uma lista de chaves
+            if (event.data.startsWith("keys:")) {
+                const receivedKeys = event.data.replace("keys:", "").split(",");
+                setKeys(receivedKeys);
+                setLogs((prevLogs) => [...prevLogs, `Chaves recebidas: ${receivedKeys.join(", ")}`]);
+            }
         };
 
         ws.onerror = (err) => {
@@ -72,7 +80,8 @@ export const CacheProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             send, 
             disconnect,
             ip,
-            port
+            port,
+            keys
             }}>
             {children}
         </CacheContext.Provider>
