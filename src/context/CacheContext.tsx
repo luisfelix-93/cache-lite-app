@@ -57,6 +57,10 @@ export const CacheProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const send = (cmd: string) => {
+        if (cmd.toLowerCase() === "clear") {
+            setLogs([]);
+            return;
+        }
         if (socketRef.current?.readyState === WebSocket.OPEN) {
             socketRef.current.send(cmd);
             setLogs((prevLogs) => [...prevLogs, `<-${cmd}`]);
